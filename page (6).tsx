@@ -1,19 +1,13 @@
 'use client';
+import { useEffect, useState } from 'react';
+import { sb } from '@/lib/supabase';
 import Shell from '@/components/Shell';
-import Crud, { F } from '@/components/Crud';
-const F_: F[] = [
-  { key: 'last_name', label: 'Nume', req: true, list: true }, { key: 'first_name', label: 'Prenume', req: true, list: true },
-  { key: 'status', label: 'Status', opts: ['candidat', 'activ', 'inactiv', 'suspendat', 'retras'], list: true },
-  { key: 'branch_id', label: 'Filiala', from: { table: 'branches', label: 'name' }, list: true },
-  { key: 'department_id', label: 'Departament', from: { table: 'departments', label: 'name' }, list: true },
-  { key: 'position', label: 'Funcția', list: true },
-  { key: 'coordinator_id', label: 'Coordonator direct', from: { table: 'volunteers', label: 'last_name' } },
-  { key: 'email', label: 'E-mail', type: 'email', list: true }, { key: 'phone', label: 'Telefon' },
-  { key: 'county', label: 'Județ' }, { key: 'city', label: 'Localitate' }, { key: 'birth_date', label: 'Data nașterii', type: 'date' },
-  { key: 'registered_at', label: 'Data înscrierii', type: 'date' }, { key: 'accepted_at', label: 'Data acceptării', type: 'date' },
-  { key: 'photo_url', label: 'Link fotografie' },
-  { key: 'contract_signed', label: 'Contract de voluntariat semnat', type: 'checkbox' },
-  { key: 'gdpr_consent', label: 'Consimțământ GDPR', type: 'checkbox' },
-  { key: 'parental_consent', label: 'Acord părinți (minori)', type: 'checkbox' },
-  { key: 'notes', label: 'Observații', type: 'textarea' }];
-export default function P() { return <Shell><Crud table="volunteers" title="Registrul voluntarilor" fields={F_} filterBy="branch_id" /></Shell>; }
+const cnt = async (t: string, f?: (q: any) => any) => { let q: any = sb.from(t).select('*', { count: 'exact', head: true }).eq('archived', false); if (f) q = f(q); const { count } = await q; return count ?? 0; };
+export default function D() {
+  const [s, setS] = useState<[string, number][]>([]);
+  useEffect(() => { (async () => {
+    const r = await Promise.all([cnt('volunteers'), cnt('volunteers', q => q.eq('status', 'activ')), cnt('volunteers', q => q.eq('status', 'candidat')), cnt('volunteers', q => q.eq('status', 'inactiv')),
+      cnt('branches'), cnt('departments'), cnt('register_entries')]);
+    setS([['Voluntari total', r[0]], ['Voluntari activi', r[1]], ['Cereri în așteptare', r[2]], ['Voluntari inactivi', r[3]], ['Filiale', r[4]], ['Departamente', r[5]], ['Înregistrări în registre', r[6]]]); })(); }, []);
+  return <Shell><h2>Dashboard</h2><div className="cards">{s.map(([l, n]) => <div className="c" key={l}><b>{n}</b>{l}</div>)}</div></Shell>;
+}

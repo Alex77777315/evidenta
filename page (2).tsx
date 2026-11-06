@@ -1,13 +1,12 @@
 'use client';
-import { useState } from 'react';
-import { sb } from '@/lib/supabase';
-export default function Login() {
-  const [e, setE] = useState(''); const [p, setP] = useState(''); const [m, setM] = useState('');
-  const go = async (ev: React.FormEvent) => { ev.preventDefault();
-    const { error } = await sb.auth.signInWithPassword({ email: e, password: p });
-    if (error) setM('E-mail sau parolă greșită.'); else location.href = '/dashboard'; };
-  return <div className="login"><form onSubmit={go}><h2 style={{ margin: 0 }}>DNT CENTRAL</h2><small style={{ color: '#9DB0D3' }}>One Organization. One System. One Direction.</small>
-    <label>E-mail<input type="email" required value={e} onChange={x => setE(x.target.value)} /></label>
-    <label>Parolă<input type="password" required value={p} onChange={x => setP(x.target.value)} /></label>
-    <button className="btn">Intră în cont</button><p className="err">{m}</p></form></div>;
-}
+import Shell from '@/components/Shell';
+import Crud, { F } from '@/components/Crud';
+const F_: F[] = [
+  { key: 'branch_id', label: 'Filiala (gol = registru național)', from: { table: 'branches', label: 'name' }, list: true },
+  { key: 'kind', label: 'Tip', req: true, opts: ['intrare', 'iesire', 'hotarare', 'decizie', 'proces-verbal', 'adresa', 'cerere', 'contract', 'raport', 'alt'], list: true },
+  { key: 'entry_date', label: 'Data', type: 'date', req: true, list: true }, { key: 'doc_number', label: 'Nr. document' },
+  { key: 'subject', label: 'Subiect', req: true, list: true }, { key: 'counterparty', label: 'Emitent / destinatar', list: true },
+  { key: 'department_id', label: 'Departament responsabil', from: { table: 'departments', label: 'name' } },
+  { key: 'responsible', label: 'Persoană responsabilă' }, { key: 'status', label: 'Status', opts: ['inregistrat', 'in lucru', 'implementat', 'respins'], list: true },
+  { key: 'file_url', label: 'Link document' }, { key: 'notes', label: 'Observații', type: 'textarea' }];
+export default function P() { return <Shell><Crud table="register_entries" title="Registre (național și pe filiale)" fields={F_} filterBy="branch_id" /></Shell>; }
